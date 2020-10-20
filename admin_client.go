@@ -34,6 +34,7 @@ type AdminClient interface {
 	DeleteSnapshot(t *hrpc.Snapshot) error
 	ListSnapshots(t *hrpc.ListSnapshots) ([]*pb.SnapshotDescription, error)
 	RestoreSnapshot(t *hrpc.Snapshot) error
+	RestoreSnapshotDone(t *hrpc.Snapshot) (*pb.IsRestoreSnapshotDoneResponse, error)
 	ClusterStatus() (*pb.ClusterStatus, error)
 	ListTableNames(t *hrpc.ListTableNames) ([]*pb.TableName, error)
 }
@@ -253,6 +254,20 @@ func (c *client) RestoreSnapshot(t *hrpc.Snapshot) error {
 		return errors.New("sendPRC returned not a RestoreSnapshotResponse")
 	}
 	return nil
+}
+
+func (c *client) RestoreSnapshotDone(t *hrpc.Snapshot) (*pb.IsRestoreSnapshotDoneResponse, error) {
+	rsd := hrpc.NewRestoreSnapshotDone(t)
+	pbmsg, err := c.SendRPC(rsd)
+	if err != nil {
+		return nil, err
+	}
+
+	r, ok := pbmsg.(*pb.IsRestoreSnapshotDoneResponse)
+	if !ok {
+		return nil, errors.New("sendRPC returned not a IsRestoreSnapshotDone")
+	}
+	return r, nil
 }
 
 func (c *client) ListTableNames(t *hrpc.ListTableNames) ([]*pb.TableName, error) {
